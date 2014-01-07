@@ -40,7 +40,8 @@ import java.awt.Dimension;
 import java.awt.event.*;
 
 import javax.swing.*;
- 
+
+
 public class Write extends JFrame
         implements KeyListener,
         ActionListener
@@ -138,7 +139,6 @@ public class Write extends JFrame
         bottom.add(timePanel);
         bottom.add(buttons);
         
-         
         getContentPane().add(typingScroll, BorderLayout.PAGE_START);
         //getContentPane().add(typingArea, BorderLayout.PAGE_START);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
