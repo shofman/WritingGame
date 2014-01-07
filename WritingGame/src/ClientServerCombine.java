@@ -140,6 +140,7 @@ public class ClientServerCombine {
 					} else {
 						hostButton.setText("Connect");
 						sr.cancelServerConnection();
+						System.out.println("Disconnected");
 					}
 					isConnecting = !isConnecting;
 				}
@@ -160,6 +161,7 @@ public class ClientServerCombine {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
+		private ClientRunner cr;
 
 		ClientWriterWindow() {
 			super.createWindow();			
@@ -167,12 +169,12 @@ public class ClientServerCombine {
 		@Override
 		public void addComponentsToPane() {
 			JButton hostButton = new JButton("Setup Client Writer");
+			cr = new ClientRunner();
 			hostButton.addActionListener(new ActionListener() {
 				
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					
+					new Thread(cr).start();
 				}
 			});
 			
@@ -315,5 +317,12 @@ public class ClientServerCombine {
 			}
 		}
 	}	
+	
+	public class ClientRunner implements Runnable {
+		@Override
+		public void run() {
+			runClient();
+		}
+	}
 	
 }
