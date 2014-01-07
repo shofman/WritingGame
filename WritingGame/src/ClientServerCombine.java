@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import javax.swing.JButton;
@@ -17,13 +18,13 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class ClientServerCombine {
 	ServerSocket serverSocket;	
 	Socket connection = null;
-	ObjectOutputStream serverOut;
-	ObjectInputStream serverIn;
+	ObjectOutputStream serverOut = null;
+	ObjectInputStream serverIn = null;
 	String serverMessage;
 	static boolean hasReceivedMessage;
 	
 	Socket clientSocket;
-	ObjectOutputStream clientOut;
+	ObjectOutputStream clientOut = null;
 	ObjectInputStream clientIn;
 	String clientMessage;
 
@@ -119,21 +120,26 @@ public class ClientServerCombine {
 		private static final long serialVersionUID = 1L;
 		private boolean isConnecting = false;
 		private JButton hostButton;
+		private ServerRunner sr;
+		
 		public HostWriterWindow() {
 			super.createWindow();
 		}
 		
 		public void addComponentsToPane() {
 			hostButton = new JButton("Connect");
+			sr = new ServerRunner();
 			hostButton.addActionListener(new ActionListener() {
-				
+			
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					if (isConnecting) {
-						new Thread(new ServerRunner()).start();
+					if (!isConnecting) {
+						hasReceivedMessage = false;
+						new Thread(sr).start();
 						hostButton.setText("Cancel connection");
 					} else {
 						hostButton.setText("Connect");
+						sr.cancelServerConnection();
 					}
 					isConnecting = !isConnecting;
 				}
@@ -249,13 +255,19 @@ public class ClientServerCombine {
 				}
 			} while(!serverMessage.equals("bye"));
 			
+		} catch(SocketException e) {
+			//Do nothing - we have closed the socket
+			hasReceivedMessage = true;
 		} catch(IOException e){
 			e.printStackTrace();
 		} finally {
 			try {
-				serverIn.close();
-				serverOut.close();
-				serverSocket.close();
+				if (!(serverIn == null))
+					serverIn.close();
+				if (!(serverOut == null))
+					serverOut.close();
+				if(!(serverSocket == null))
+					serverSocket.close();
 			} catch(IOException e) {
 				e.printStackTrace();
 			}
@@ -288,17 +300,19 @@ public class ClientServerCombine {
 	}
 	
 	public class ServerRunner implements Runnable {
-		Server server;
 		@Override
 		public void run() {
-			server = new Server();
 			while(!hasReceivedMessage) {
-				server.run();
+				runServer();
 			}
 		}
 		
-		public Server getServer() {
-			return server;
+		public void cancelServerConnection() {
+			try {
+				serverSocket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}	
 	
